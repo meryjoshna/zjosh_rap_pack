@@ -65,6 +65,24 @@ CLASS lhc_zjosh_i_bookg IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
+
+      READ ENTITIES OF zjosh_i_travel in LOCAL MODE
+      entity zjosh_i_travel by \_booking
+      fields ( TravelId BookingId BookingStatus )
+      with CORRESPONDING #( keys )
+      result data(lt_bookra).
+
+      result  = value #( for ls_book in lt_bookra (
+                          %tky = ls_book-%tky
+                          %features-%assoc-_booknsupp = cond #( when ls_book-BookingStatus = 'X'
+                                                                then if_abap_behv=>fc-o-disabled )
+                          ) ).
+
+
+
+
+
+
   ENDMETHOD.
 
 ENDCLASS.

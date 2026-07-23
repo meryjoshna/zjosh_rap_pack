@@ -331,6 +331,29 @@ CLASS lhc_zjosh_i_travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
+
+*  read instances from the keys
+
+     READ ENTITIES OF zjosh_i_travel in LOCAL MODE
+       entity zjosh_i_travel
+       fields ( TravelId overallstatus )
+       with CORRESPONDING #( keys )
+       result data(lt_travel).
+
+       result = value #( for ls_travel in lt_travel
+                          ( %tky = ls_travel-%tky
+                            %features-%action-acceptTravel = cond #( when ls_travel-overallstatus = 'A'
+                                                                     then if_abap_behv=>fc-o-disabled
+                                                                     else if_abap_behv=>fc-o-enabled )
+                            %features-%action-rejectTravel = cond #( when ls_travel-overallstatus = 'X'
+                                                                     then if_abap_behv=>fc-o-disabled
+                                                                     else if_abap_behv=>fc-o-enabled )
+                            %features-%assoc-_booking = cond #( when ls_travel-overallstatus = 'X'
+                                                                     then if_abap_behv=>fc-o-disabled
+                                                                     else if_abap_behv=>fc-o-enabled )
+                             ) ).
+
+
   ENDMETHOD.
 
 ENDCLASS.
