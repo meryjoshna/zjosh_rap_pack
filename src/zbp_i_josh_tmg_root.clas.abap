@@ -1,0 +1,5 @@
+CLASS zbp_i_josh_tmg_root DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zi_josh_tmg_root.
+ENDCLASS.
+
+CLASS zbp_i_josh_tmg_root IMPLEMENTATION.
+ENDCLASS.

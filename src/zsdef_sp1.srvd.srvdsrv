@@ -1,0 +1,4 @@
+@EndUserText.label: 'sdef'
+define service Zsdef_sp1 {
+  expose zjosh_c_sp1;
+}

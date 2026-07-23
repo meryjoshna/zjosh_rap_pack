@@ -1,0 +1,31 @@
+@Metadata.layer: #CORE
+
+@UI: {
+  headerInfo: {
+    typeName       : 'RAP TMG',
+    typeNamePlural : 'RAP TMG',
+    title          : {
+      type  : #STANDARD,
+      value : 'SingletonID'
+    }
+  }
+}
+
+annotate entity ZC_JOSH_TMG_ROOT
+with
+{
+
+  @UI.facet: [
+    {
+      purpose       : #STANDARD,
+      type          : #LINEITEM_REFERENCE,
+      label         : 'Rap TMG ML Edit',
+      position      : 10,
+      targetElement : '_Items'
+    }
+  ]
+
+  @UI.lineItem: [{ position: 10 ,importance: #HIGH }]
+  SingletonID;
+
+}

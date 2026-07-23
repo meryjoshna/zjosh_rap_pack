@@ -1,0 +1,33 @@
+projection;
+strict ( 2 );
+
+
+define behavior for zjosh_c_travel //alias <alias_name>
+use etag
+{
+  use create;
+  use update;
+  use delete;
+
+  use action copyTravel;
+
+  use association _booking { create; }
+}
+
+define behavior for zjosh_c_bookg //alias <alias_name>
+{
+  use update;
+  use delete;
+
+  use association _travel;
+  use association _booknsupp { create; }
+}
+
+define behavior for zjosh_c_bokgsupp //alias <alias_name>
+{
+  use update;
+  use delete;
+
+  use association _travel;
+  use association _bookng;
+}

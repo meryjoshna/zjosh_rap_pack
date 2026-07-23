@@ -1,0 +1,77 @@
+
+@Metadata.layer: #CORE
+
+@UI: {
+  headerInfo: {
+    typeName       : 'TMG Entry',
+    typeNamePlural : 'TMG Entries',
+    title : {
+      type  : #STANDARD,
+      label : 'Module',
+      value : 'MODUL'
+    }
+  }
+}
+
+annotate entity ZC_JOSH_TMG_ITEM
+with
+{
+
+  @UI.facet: [{ type: #IDENTIFICATION_REFERENCE }]
+
+  @EndUserText.label: 'Module'
+  @UI.lineItem: [{ position: 10 }]
+  @UI.identification: [{ position: 10 }]
+  modul;
+
+  @EndUserText.label: 'Program Name'
+  @UI.lineItem: [{ position: 20 }]
+  @UI.identification: [{ position: 20 }]
+  program_name;
+
+  @EndUserText.label: 'Task'
+  @UI.lineItem: [{ position: 30 }]
+  @UI.identification: [{ position: 30 }]
+  task;
+
+  @EndUserText.label: 'Variable Key 1'
+  @UI.lineItem: [{ position: 40 }]
+  @UI.identification: [{ position: 40 }]
+  varkey1;
+
+  @EndUserText.label: 'Variable Key 2'
+  @UI.lineItem: [{ position: 50 }]
+  @UI.identification: [{ position: 50 }]
+  varkey2;
+
+  @EndUserText.label: 'Variable Key 3'
+  @UI.lineItem: [{ position: 60 }]
+  @UI.identification: [{ position: 60 }]
+  varkey3;
+
+  @EndUserText.label: 'Variable Key 4'
+  @UI.lineItem: [{ position: 70 }]
+  @UI.identification: [{ position: 70 }]
+  varkey4;
+
+  @EndUserText.label: 'Variable Key 5'
+  @UI.lineItem: [{ position: 80 }]
+  @UI.identification: [{ position: 80 }]
+  varkey5;
+
+  @EndUserText.label: 'Description'
+  @UI.lineItem: [{ position: 90 , importance : #HIGH}]
+  @UI.identification: [{ position: 90 }]
+  description;
+
+  @EndUserText.label: 'Z Key'
+  @UI.lineItem: [{ position: 100 }]
+  @UI.identification: [{ position: 100 }]
+  zkey;
+
+  @EndUserText.label: 'Switch'
+  @UI.lineItem: [{ position: 110 , importance : #HIGH }]
+  @UI.identification: [{ position: 110 }]
+  switch;
+
+}

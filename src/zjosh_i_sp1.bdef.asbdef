@@ -1,0 +1,26 @@
+managed implementation in class zbp_josh_i_sp1 unique;
+strict ( 2 );
+
+define behavior for zjosh_i_sp1 //alias <alias_name>
+persistent table /dmo/flight
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly ) CarrierId, ConnectionId, FlightDate;
+  mapping for /dmo/flight
+  {
+     CarrierId  =  carrier_id;
+     ConnectionId = connection_id;
+     FlightDate  = flight_date;
+    Price = price;
+    CurrencyCode = currency_code;
+    PlaneTypeId = plane_type_id;
+    SeatsMax = seats_max;
+    SeatsOccupied = seats_occupied;
+
+  }
+}

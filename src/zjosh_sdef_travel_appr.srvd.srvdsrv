@@ -1,0 +1,5 @@
+@EndUserText.label: 'sdef travel approver'
+define service Zjosh_sdef_travel_appr {
+  expose zjosh_c_travel_appr;
+  expose zjosh_c_bookg_appr;
+}

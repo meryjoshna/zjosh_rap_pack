@@ -1,0 +1,93 @@
+managed implementation in class zbp_i_josh_tmg_root unique;
+
+strict ( 2 );
+with draft;
+
+define behavior for ZI_JOSH_TMG_ROOT alias TMGRoot
+with unmanaged save
+draft table zjosh_d_tmg_root
+lock master
+total etag LastChangedAtMax
+authorization master ( instance )
+{
+  association _Items { create; with draft; }
+
+  field ( readonly )
+    SingletonID,
+    LastChangedAtMax;
+
+  draft action Edit;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
+
+  draft determine action Prepare
+  {
+    validation Items~validate_switch;
+    validation Items~validate_task_number;
+  }
+}
+define behavior for ZI_JOSH_TMG_ITEM alias Items
+persistent table zjosh_rap_tmg1
+draft table zjosh_d_tmgitem
+lock dependent by _Root
+authorization dependent by _Root
+etag master local_last_changed_at
+//early numbering
+{
+  update;
+  delete;
+
+  field ( readonly )
+    SingletonID,
+    local_created_by,
+    local_created_at,
+    local_last_changed_by,
+    local_last_changed_at,
+    last_changed_at;
+
+  field ( readonly )  varkey1,
+    varkey2,
+    varkey3,
+    varkey4,
+    varkey5;
+
+  field ( readonly : update ) modul,
+    program_name,
+    task;
+
+
+  validation validate_switch
+    on save { field switch; }
+
+  validation validate_task_number
+    on save { field task; }
+
+  determination set_varkey_values_modify
+    on modify { create; }
+
+  association _Root { with draft; }
+
+  mapping for zjosh_rap_tmg1
+  {
+    modul                 = modul;
+    program_name          = program_name;
+    task                  = task;
+
+    varkey1               = varkey1;
+    varkey2               = varkey2;
+    varkey3               = varkey3;
+    varkey4               = varkey4;
+    varkey5               = varkey5;
+
+    description           = description;
+    zkey                  = zkey;
+    switch                = switch;
+
+    local_created_by      = local_created_by;
+    local_created_at      = local_created_at;
+    local_last_changed_by = local_last_changed_by;
+    local_last_changed_at = local_last_changed_at;
+    last_changed_at       = last_changed_at;
+  }
+}

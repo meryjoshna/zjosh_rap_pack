@@ -1,0 +1,5 @@
+@ObjectModel.leadingEntity.name: 'ZC_JOSH_TMG_ROOT'
+define service ZSDEF_JOSH_TMG_MLEDIT {
+  expose ZC_JOSH_TMG_ROOT as TMGRoot;
+  expose ZC_JOSH_TMG_ITEM as Items;
+}

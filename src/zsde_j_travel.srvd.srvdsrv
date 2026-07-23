@@ -1,0 +1,6 @@
+@EndUserText.label: 'sdef travel'
+define service Zsde_j_travel {
+  expose zjosh_c_travel;
+  expose zjosh_c_bookg;
+  expose zjosh_c_bokgsupp;
+}

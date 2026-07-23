@@ -1,0 +1,32 @@
+projection;
+strict (2);
+use draft;
+
+define behavior for ZC_JOSH_TMG_ROOT alias TMGRoot
+{
+  use action Activate;
+  use action Discard;
+  use action Edit;
+  use action Prepare;
+  use action Resume;
+
+
+
+  use association _Items
+  {
+    create;
+    with draft;
+  }
+}
+
+define behavior for ZC_JOSH_TMG_ITEM alias Items
+use etag
+{
+  use update;
+  use delete;
+
+  use association _Root
+  {
+    with draft;
+  }
+}

@@ -1,0 +1,143 @@
+@Metadata.layer: #CORE
+
+@Search.searchable: true
+@UI.headerInfo: {
+    typeName: 'Travel',
+    typeNamePlural: 'Travels',
+   
+    title: {
+        type: #STANDARD,
+        label: 'Travel',
+        value: 'TravelId'
+       
+    }
+    
+}
+annotate entity zjosh_c_travel
+    with 
+{
+   @UI.facet: [{
+      
+       id: 'Travel',
+       purpose: #STANDARD,
+       position: 10 ,
+       
+       label: 'Travel',
+       type: #IDENTIFICATION_REFERENCE
+       
+   },
+    
+    {
+      
+       id: 'Booking',
+       purpose: #STANDARD,
+       position: 20 ,
+       
+       label: 'Bookings',
+       type: #LINEITEM_REFERENCE,
+       targetElement: '_booking'
+       
+   }
+   
+   
+   
+   
+   
+   ]
+//   TO ADD ACTION IN LIST REPORT USE IN LINE ITEM
+// USE IN IDENTIFICATION IF WE WANT THIS ACTION IN OBJECT PAGE
+   @UI.lineItem: [{ position:10},
+                  { type:#FOR_ACTION, dataAction: 'copyTravel', label: 'Copy Travel'}]
+   @UI.identification: [{ position: 10 }]
+   @Search.defaultSearchElement: true
+   @Search.fuzzinessThreshold: 0.7
+   TravelId;
+   
+   @UI.lineItem: [{ position:20 }]
+   @UI.selectionField: [{position: 20 }]
+   @Search.defaultSearchElement: true
+   @Search.fuzzinessThreshold: 0.7
+   @Consumption.valueHelpDefinition: [{ 
+     entity: {
+         name: '/DMO/I_Agency',
+         element: 'AgencyID'
+     }
+   
+    }]
+   @UI.identification: [{ position: 20 }]
+   AgencyId;
+   
+   
+   @UI.lineItem: [{ position:30 }]
+   @UI.selectionField: [{position: 30 }]
+   @Search.defaultSearchElement: true
+   @Search.fuzzinessThreshold: 0.7
+   @Consumption.valueHelpDefinition: [{ 
+     entity: {
+         name: '/DMO/I_Customer',
+         element: 'CustomerID'
+     }
+   
+    }]
+     @UI.identification: [{ position: 30 }]
+   CustomerId;
+   
+   @UI.lineItem: [{ position:40 }]
+    @UI.identification: [{ position: 40 }]
+   BeginDate;
+   
+   @UI.lineItem: [{ position:50 }]
+    @UI.identification: [{ position: 50 }]
+   EndDate;
+   
+  // @ui.lineItem: [{ position:60 }]
+   @UI.identification: [{ position: 60 }]
+   BookingFee;
+   
+   @UI.lineItem: [{ position:60 }]
+    @UI.identification: [{ position: 65 }]
+   TotalPrice;
+   
+    @Consumption.valueHelpDefinition: [{ 
+     entity: {
+         name: 'I_Currency',
+         element: 'Currency'
+     }
+   
+    }]
+   CurrencyCode;
+   
+    @UI.identification: [{ position: 70 }]
+   Description;
+   
+     @UI.lineItem: [{ position:70 }]
+     @UI.selectionField: [{position: 40 }]
+     @Search.defaultSearchElement: true
+     @Search.fuzzinessThreshold: 0.7
+     
+     //to get only text
+     @UI.textArrangement: #TEXT_ONLY
+     @UI.identification: [{ position: 75 }]
+     @EndUserText.label: 'Overall Status'
+     @Consumption.valueHelpDefinition: [{ 
+     entity: {
+         name: '/DMO/I_Overall_Status_VH',
+         element: 'OverallStatus'
+     }  
+    }]
+    
+     overallstatus;
+//   Text;
+//   Createdby;
+//   Createdat;
+//   Lastchangedby;
+   
+   @UI.hidden: true
+   Lastchangedat;
+   
+ //  @UI.hidden: true
+ //  lastchangedatglobal;
+   
+   
+    
+}
