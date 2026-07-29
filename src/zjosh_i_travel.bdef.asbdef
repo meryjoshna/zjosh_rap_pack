@@ -13,6 +13,15 @@ early numbering
   update;
   delete;
 
+
+//  validations
+
+  validation validateCustomer on save{ create; field CustomerId;}
+  validation validateDates on save{ create; field BeginDate, EndDate;}
+  validation validateStatus on save{ create; field overallstatus;}
+  validation validateCurrencyCode on save{ create; field CurrencyCode; }
+  validation validateBookingFee on save{ create; field BookingFee; }
+
 // dynamic feature control
   action(features: instance ) acceptTravel result[1] $self ;
   action(features: instance ) rejectTravel result[1] $self;
@@ -65,6 +74,11 @@ early numbering
   field (mandatory) CarrierId, ConnectionId, FlightDate, BookingStatus;
   field (mandatory: create, readonly : update) BookingDate, CustomerId;
 
+  validation validateStatus on save{ create; field BookingStatus;}
+  validation validateCustomer on save{ create; field CustomerId;}
+  validation validateCurrencyCode on save{ create; field CurrencyCode;}
+  validation validateConnection on save{ create; field CarrierId, ConnectionId, FlightDate;}
+  validation validateFlightPrice on save{ create; field FlightPrice;}
 
   association _travel;
 
@@ -101,6 +115,10 @@ early numbering
 // static feature control
   field ( readonly ) TravelId, BookingId, BookingSupplementId, LastChangedAt;
   field (mandatory) Price ,SupplementId;
+
+  validation validateCurrencyCode on save{ create; field CurrencyCode;}
+  validation validateSupplement on save{ create; field SupplementId;}
+  validation valiatePrice on save{ create; field price;}
 
   association _travel;
   association _bookng;

@@ -6,6 +6,20 @@ CLASS lhc_zjosh_i_bookg DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING entities FOR CREATE zjosh_i_bookg\_Booknsupp.
     METHODS get_instance_features FOR INSTANCE FEATURES
       IMPORTING keys REQUEST requested_features FOR zjosh_i_bookg RESULT result.
+    METHODS validateconnection FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_bookg~validateconnection.
+
+    METHODS validatecurrencycode FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_bookg~validatecurrencycode.
+
+    METHODS validatecustomer FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_bookg~validatecustomer.
+
+    METHODS validateflightprice FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_bookg~validateflightprice.
+
+    METHODS validatestatus FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_bookg~validatestatus.
 
 ENDCLASS.
 
@@ -79,10 +93,21 @@ CLASS lhc_zjosh_i_bookg IMPLEMENTATION.
                           ) ).
 
 
+  ENDMETHOD.
 
+  METHOD validateConnection.
+  ENDMETHOD.
 
+  METHOD validateCurrencyCode.
+  ENDMETHOD.
 
+  METHOD validateCustomer.
+  ENDMETHOD.
 
+  METHOD validateFlightPrice.
+  ENDMETHOD.
+
+  METHOD validateStatus.
   ENDMETHOD.
 
 ENDCLASS.

@@ -20,6 +20,19 @@ CLASS lhc_zjosh_i_travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING keys FOR ACTION zjosh_i_travel~rejecttravel RESULT result.
     METHODS get_instance_features FOR INSTANCE FEATURES
       IMPORTING keys REQUEST requested_features FOR zjosh_i_travel RESULT result.
+    METHODS validatecustomer FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_travel~validatecustomer.
+    METHODS validatebookingfee FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_travel~validatebookingfee.
+
+    METHODS validatecurrencycode FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_travel~validatecurrencycode.
+
+    METHODS validatedates FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_travel~validatedates.
+
+    METHODS validatestatus FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zjosh_i_travel~validatestatus.
     METHODS earlynumbering_cba_booking FOR NUMBERING
       IMPORTING entities FOR CREATE zjosh_i_travel\_booking.
     METHODS earlynumbering_create FOR NUMBERING
@@ -190,14 +203,14 @@ CLASS lhc_zjosh_i_travel IMPLEMENTATION.
 
 ** after updating we need to read the data and pass to result parameter for all the keys
 
-      READ ENTITIES OF zjosh_i_travel in LOCAL MODE
-      entity zjosh_i_travel
-      ALL FIELDS WITH CORRESPONDING #( keys )
-      RESULT data(lt_result).
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+    ENTITY zjosh_i_travel
+    ALL FIELDS WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result).
 
-      result = value #( for ls_res in lt_result
-                         ( %tky = ls_res-%tky
-                           %param = ls_res ) ).
+    result = VALUE #( FOR ls_res IN lt_result
+                       ( %tky = ls_res-%tky
+                         %param = ls_res ) ).
 
   ENDMETHOD.
 
@@ -313,46 +326,190 @@ CLASS lhc_zjosh_i_travel IMPLEMENTATION.
 
   METHOD rejectTravel.
 
-  MODIFY ENTITIES OF zjosh_i_travel IN LOCAL MODE
-    ENTITY zjosh_i_travel
-    UPDATE FIELDS ( overallstatus )
-    WITH VALUE #( FOR ls_key IN keys (
-                     %tky = ls_key-%tky
-                     overallstatus = 'X' ) ).
+    MODIFY ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel
+      UPDATE FIELDS ( overallstatus )
+      WITH VALUE #( FOR ls_key IN keys (
+                       %tky = ls_key-%tky
+                       overallstatus = 'X' ) ).
 
-    READ ENTITIES OF zjosh_i_travel in LOCAL MODE
-      entity zjosh_i_travel
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel
       ALL FIELDS WITH CORRESPONDING #( keys )
-      RESULT data(lt_result).
+      RESULT DATA(lt_result).
 
-      result = value #( for ls_res in lt_result
-                         ( %tky = ls_res-%tky
-                           %param = ls_res ) ).
+    result = VALUE #( FOR ls_res IN lt_result
+                       ( %tky = ls_res-%tky
+                         %param = ls_res ) ).
   ENDMETHOD.
 
   METHOD get_instance_features.
 
 *  read instances from the keys
 
-     READ ENTITIES OF zjosh_i_travel in LOCAL MODE
-       entity zjosh_i_travel
-       fields ( TravelId overallstatus )
-       with CORRESPONDING #( keys )
-       result data(lt_travel).
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel
+      FIELDS ( TravelId overallstatus )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_travel).
 
-       result = value #( for ls_travel in lt_travel
-                          ( %tky = ls_travel-%tky
-                            %features-%action-acceptTravel = cond #( when ls_travel-overallstatus = 'A'
-                                                                     then if_abap_behv=>fc-o-disabled
-                                                                     else if_abap_behv=>fc-o-enabled )
-                            %features-%action-rejectTravel = cond #( when ls_travel-overallstatus = 'X'
-                                                                     then if_abap_behv=>fc-o-disabled
-                                                                     else if_abap_behv=>fc-o-enabled )
-                            %features-%assoc-_booking = cond #( when ls_travel-overallstatus = 'X'
-                                                                     then if_abap_behv=>fc-o-disabled
-                                                                     else if_abap_behv=>fc-o-enabled )
-                             ) ).
+    result = VALUE #( FOR ls_travel IN lt_travel
+                       ( %tky = ls_travel-%tky
+                         %features-%action-acceptTravel = COND #( WHEN ls_travel-overallstatus = 'A'
+                                                                  THEN if_abap_behv=>fc-o-disabled
+                                                                  ELSE if_abap_behv=>fc-o-enabled )
+                         %features-%action-rejectTravel = COND #( WHEN ls_travel-overallstatus = 'X'
+                                                                  THEN if_abap_behv=>fc-o-disabled
+                                                                  ELSE if_abap_behv=>fc-o-enabled )
+                         %features-%assoc-_booking = COND #( WHEN ls_travel-overallstatus = 'X'
+                                                                  THEN if_abap_behv=>fc-o-disabled
+                                                                  ELSE if_abap_behv=>fc-o-enabled )
+                          ) ).
 
+
+  ENDMETHOD.
+
+  METHOD validateCustomer.
+
+*  read customer for the travels in keys , and validate if it correct using demo customer table
+    READ ENTITY IN LOCAL MODE zjosh_i_travel
+    FIELDS ( CustomerId )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_travel).
+
+*
+    DATA : lt_cust TYPE SORTED TABLE OF /dmo/customer WITH UNIQUE KEY customer_id.
+
+    lt_cust = CORRESPONDING #( lt_travel DISCARDING DUPLICATES MAPPING customer_id = CustomerId ).
+
+    DELETE lt_cust WHERE customer_id IS INITIAL.
+
+    IF lt_cust IS NOT INITIAL.
+
+      SELECT FROM /dmo/customer
+      FIELDS customer_id
+      FOR ALL ENTRIES IN @lt_cust
+      WHERE customer_id = @lt_cust-customer_id
+      INTO TABLE @DATA(lt_cust_db).  " we get customers that are in database for our travel customers
+    ENDIF.
+
+
+
+    "loop at travels and check if customer id is inital and doesnt exist in demo customer table
+
+    LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<ls_travel>).
+
+      IF <ls_travel>-CustomerId IS INITIAL OR NOT
+         line_exists( lt_cust_db[ customer_id = <ls_travel>-CustomerId ] ).
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky )
+         TO failed-zjosh_i_travel.
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky
+                        %msg = NEW /dmo/cm_flight_messages(
+                                      textid                = /dmo/cm_flight_messages=>customer_unkown
+                                      customer_id           = <ls_travel>-CustomerId
+                                      severity              =  if_abap_behv_message=>severity-error
+                                      )
+                        %element-customerid = if_abap_behv=>mk-on
+
+
+                 ) TO reported-zjosh_i_travel.
+
+
+      ENDIF.
+
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD validateBookingFee.
+  ENDMETHOD.
+
+  METHOD validateCurrencyCode.
+  ENDMETHOD.
+
+  METHOD validateDates.
+
+    READ ENTITY IN LOCAL MODE zjosh_i_travel
+     FIELDS ( BeginDate EndDate )
+     WITH CORRESPONDING #( keys )
+     RESULT DATA(lt_travel).
+
+    LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<ls_travel>).
+
+      IF <ls_travel>-EndDate < <ls_travel>-BeginDate.  "end_date before begin_date show error message
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky ) TO failed-zjosh_i_travel.
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky
+                        %msg = NEW /dmo/cm_flight_messages(
+                                     textid                = /dmo/cm_flight_messages=>begin_date_bef_end_date
+                                     travel_id             = <ls_travel>-TravelId
+                                     begin_date            = <ls_travel>-BeginDate
+                                     end_date              = <ls_travel>-EndDate
+
+                                     severity              = if_abap_behv_message=>severity-error
+
+                                     )
+                         %element-BeginDate = if_abap_behv=>mk-on
+                         %element-EndDate = if_abap_behv=>mk-on
+
+                  ) TO reported-zjosh_i_travel.
+
+      ELSEIF <ls_travel>-BeginDate < cl_abap_context_info=>get_system_date( ).   "begin_date must be in the future
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky ) TO failed-zjosh_i_travel.
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky
+                        %msg = NEW /dmo/cm_flight_messages(
+                                  textid                = /dmo/cm_flight_messages=>begin_date_on_or_bef_sysdate
+                                  travel_id             = <ls_travel>-TravelId
+                                  begin_date            = <ls_travel>-BeginDate
+                                  severity              = if_abap_behv_message=>severity-error
+                                  )
+                       %element-BeginDate = if_abap_behv=>mk-on
+
+
+               ) TO reported-zjosh_i_travel.
+      ENDIF.
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
+  METHOD validateStatus.
+
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel
+      FIELDS ( overallstatus )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_travel).
+
+    LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<ls_travel>).
+      CASE <ls_travel>-overallstatus.
+        WHEN 'A'.   "other than those 3 show error mssg
+        WHEN 'O'.
+        WHEN 'X'.
+        WHEN OTHERS.
+
+          APPEND VALUE #( %tky = <ls_travel>-%tky ) TO failed-zjosh_i_travel.
+
+          APPEND VALUE #( %tky = <ls_travel>-%tky
+                          %msg = NEW /dmo/cm_flight_messages(
+                                       textid                = /dmo/cm_flight_messages=>status_invalid
+                                       travel_id             = <ls_travel>-TravelId
+                                       status                = <ls_travel>-overallstatus
+                                       severity              = if_abap_behv_message=>severity-error
+
+                                        )
+                        %element-overallstatus = if_abap_behv=>mk-on
+               ) TO reported-zjosh_i_travel.
+
+      ENDCASE.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
