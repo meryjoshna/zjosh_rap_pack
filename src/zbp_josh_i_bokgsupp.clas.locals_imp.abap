@@ -10,6 +10,8 @@ CLASS lhc_zjosh_i_bookg_supp DEFINITION INHERITING FROM cl_abap_behavior_handler
 
     METHODS validateSupplement FOR VALIDATE ON SAVE
       IMPORTING keys FOR zjosh_i_bookg_supp~validateSupplement.
+    METHODS calculateTotalPrice FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR zjosh_i_bookg_supp~calculateTotalPrice.
 
 ENDCLASS.
 
@@ -22,6 +24,19 @@ CLASS lhc_zjosh_i_bookg_supp IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD validateSupplement.
+  ENDMETHOD.
+
+  METHOD calculateTotalPrice.
+
+    DATA : it_travel TYPE STANDARD TABLE OF zjosh_i_travel WITH UNIQUE HASHED KEY key COMPONENTS TravelId.
+
+    it_travel = CORRESPONDING #( keys DISCARDING DUPLICATES MAPPING TravelId = TravelId ).
+
+    MODIFY ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel
+       EXECUTE recalctolPrice
+       FROM CORRESPONDING #( it_travel ).
+
   ENDMETHOD.
 
 ENDCLASS.

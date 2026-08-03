@@ -22,6 +22,10 @@ early numbering
   validation validateCurrencyCode on save{ create; field CurrencyCode; }
   validation validateBookingFee on save{ create; field BookingFee; }
 
+// Determinations
+
+  determination calculateTotalPrice on modify{ create; field BookingFee, CurrencyCode;}
+
 // dynamic feature control
   action(features: instance ) acceptTravel result[1] $self ;
   action(features: instance ) rejectTravel result[1] $self;
@@ -30,7 +34,7 @@ early numbering
   internal action recalctolPrice;
 
 //  static feature control
-  field ( readonly ) TravelId, Createdat, Createdby, Lastchangedat, Lastchangedby;
+  field ( readonly ) TravelId, Createdat, Createdby, Lastchangedat, Lastchangedby, TotalPrice;
   field (mandatory) AgencyId, CustomerId, BeginDate, EndDate, overallstatus,BookingFee, CurrencyCode;
 
 //dynamic featur control , if travel is rejected shouldnt create booking
@@ -80,6 +84,8 @@ early numbering
   validation validateConnection on save{ create; field CarrierId, ConnectionId, FlightDate;}
   validation validateFlightPrice on save{ create; field FlightPrice;}
 
+  determination calculateTotalPrice on modify{ create; field FlightPrice, CurrencyCode;}
+
   association _travel;
 
 //  dynamic feature control, if booking is canceled shouldnt be able to create book supp
@@ -119,6 +125,8 @@ early numbering
   validation validateCurrencyCode on save{ create; field CurrencyCode;}
   validation validateSupplement on save{ create; field SupplementId;}
   validation valiatePrice on save{ create; field price;}
+
+  determination calculateTotalPrice on modify{ create; field Price , CurrencyCode;}
 
   association _travel;
   association _bookng;

@@ -33,6 +33,8 @@ CLASS lhc_zjosh_i_travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS validatestatus FOR VALIDATE ON SAVE
       IMPORTING keys FOR zjosh_i_travel~validatestatus.
+    METHODS calculatetotalprice FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR zjosh_i_travel~calculatetotalprice.
     METHODS earlynumbering_cba_booking FOR NUMBERING
       IMPORTING entities FOR CREATE zjosh_i_travel\_booking.
     METHODS earlynumbering_create FOR NUMBERING
@@ -322,6 +324,98 @@ CLASS lhc_zjosh_i_travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD recalctolPrice.
+
+
+    TYPES : BEGIN OF lty_tprices,
+              price TYPE /dmo/total_price,
+              curr  TYPE /dmo/currency_code,
+            END OF lty_tprices.
+
+
+    DATA : lt_tprices TYPE TABLE OF lty_tprices.
+
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel
+      FIELDS ( BookingFee CurrencyCode )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_travels).
+
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_travel BY \_booking
+      FIELDS ( FlightPrice CurrencyCode )
+      WITH CORRESPONDING #( lt_travels )
+      RESULT DATA(lt_bookgs).
+
+    READ ENTITIES OF zjosh_i_travel IN LOCAL MODE
+      ENTITY zjosh_i_bookg BY \_booknsupp
+      FIELDS ( Price CurrencyCode )
+      WITH CORRESPONDING #( lt_bookgs )
+      RESULT DATA(lt_booksupp).
+
+
+    DELETE lt_travels WHERE CurrencyCode IS INITIAL.
+
+*     append all prices with corresponding currency to an internal table
+    LOOP AT lt_travels ASSIGNING FIELD-SYMBOL(<ls_travel>).
+
+      "creates a new internal table for every travel, shouldnt use append
+      lt_tprices = VALUE #( ( price = <ls_travel>-BookingFee
+                            curr = <ls_travel>-CurrencyCode ) ).
+
+      LOOP AT lt_bookgs ASSIGNING FIELD-SYMBOL(<ls_bookg>) USING KEY entity
+                      WHERE travelid = <ls_travel>-TravelId AND CurrencyCode IS NOT INITIAL.
+*        can use collect instead of append
+        COLLECT VALUE lty_tprices( price = <ls_bookg>-FlightPrice
+                        curr = <ls_bookg>-CurrencyCode ) INTO lt_tprices.
+
+
+        LOOP AT lt_booksupp ASSIGNING FIELD-SYMBOL(<ls_booksupp>) USING KEY entity
+                           WHERE TravelId  = <ls_bookg>-TravelId AND
+                                 BookingId = <ls_bookg>-BookingId AND
+                                 CurrencyCode IS NOT INITIAL.
+
+          COLLECT VALUE lty_tprices( price = <ls_booksupp>-Price
+                          curr = <ls_booksupp>-CurrencyCode ) INTO lt_tprices.
+
+        ENDLOOP.
+
+      ENDLOOP.
+
+*        as all prices needed to calculate total prices are in an internal table lt_tprices
+*        loop through the table and add to total price when same currency when not convert to travel currency and add to total price
+      CLEAR <ls_travel>-TotalPrice.
+      LOOP AT lt_tprices ASSIGNING FIELD-SYMBOL(<ls_prices>).
+
+        IF <ls_prices>-curr = <ls_travel>-CurrencyCode.
+          <ls_travel>-TotalPrice += <ls_prices>-price.
+
+        ELSE.
+          "convert currency to travel currency if not matched
+          /dmo/cl_flight_amdp=>convert_currency(
+            EXPORTING
+              iv_amount               = <ls_prices>-price
+              iv_currency_code_source = <ls_prices>-curr
+              iv_currency_code_target = <ls_travel>-CurrencyCode
+              iv_exchange_rate_date   = cl_abap_context_info=>get_system_date( )
+            IMPORTING
+              ev_amount               = DATA(lv_conv_price)
+          ).
+
+          <ls_travel>-TotalPrice += lv_conv_price.
+
+        ENDIF.
+      ENDLOOP.
+
+    ENDLOOP.
+
+    "we have updated the total price  above need to update on ui now
+
+    MODIFY ENTITIES OF zjosh_i_travel IN LOCAL MODE
+    ENTITY zjosh_i_travel
+    UPDATE FIELDS ( TotalPrice )
+    WITH CORRESPONDING #( lt_travels ).
+
+
   ENDMETHOD.
 
   METHOD rejectTravel.
@@ -510,6 +604,17 @@ CLASS lhc_zjosh_i_travel IMPLEMENTATION.
       ENDCASE.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD calculateTotalPrice.
+
+* calling internal action
+
+    MODIFY ENTITIES OF zjosh_i_travel IN LOCAL MODE
+     ENTITY zjosh_i_travel
+     EXECUTE recalctolPrice
+     FROM CORRESPONDING #( keys ).
 
   ENDMETHOD.
 
