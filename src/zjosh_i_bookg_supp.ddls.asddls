@@ -18,6 +18,7 @@ define view entity zjosh_i_bookg_supp
       @Semantics.amount.currencyCode: 'CurrencyCode'
       price                 as Price,
       currency_code         as CurrencyCode,
+      @Semantics.systemDateTime.localInstanceLastChangedAt: true
       lastchangedat       as LastChangedAt,
       _supplement,
       _SupplementText,

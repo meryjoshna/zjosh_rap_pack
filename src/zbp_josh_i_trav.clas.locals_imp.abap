@@ -165,6 +165,62 @@ CLASS lsc_zjosh_i_travel IMPLEMENTATION.
     ENDIF.
 
 
+****************************************************************************
+************************************for unmanaged save booking supp
+
+    DATA : lt_book_supp TYPE STANDARD TABLE OF zjosh_bookg_supp.
+
+    IF create-zjosh_i_bookg_supp IS NOT INITIAL.
+
+*   lt_book_supp = CORRESPONDING #( create-zjosh_i_bookg_supp ). cant use this fields names were diff , should use mapping
+
+      lt_book_supp = VALUE #( FOR ls_booksupp IN create-zjosh_i_bookg_supp (
+
+                                 travel_id = ls_booksupp-TravelId
+                                 booking_id = ls_booksupp-BookingId
+                                 booking_supplement_id = ls_booksupp-BookingSupplementId
+                                 supplement_id = ls_booksupp-SupplementId
+                                 price = ls_booksupp-Price
+                                 currency_code = ls_booksupp-CurrencyCode
+                                 lastchangedat = ls_booksupp-LastChangedAt
+
+                              ) ).
+
+
+      "we can use function module here
+
+      INSERT zjosh_bookg_supp FROM TABLE @lt_book_supp.
+
+
+    ENDIF.
+
+    IF update-zjosh_i_bookg_supp IS NOT INITIAL.
+
+      lt_book_supp = CORRESPONDING #( update-zjosh_i_bookg_supp MAPPING travel_id = TravelId
+                                                                       booking_id = BookingId
+                                                                       booking_supplement_id = BookingSupplementId
+                                                                       supplement_id = SupplementId
+                                                                       price = Price
+                                                                       currency_code = CurrencyCode
+                                                                       lastchangedat = LastChangedAt ).
+
+      "we are manually doing cud
+      UPDATE zjosh_bookg_supp FROM TABLE @lt_book_supp.
+
+    ENDIF.
+
+
+    IF delete-zjosh_i_bookg_supp IS NOT INITIAL.
+
+      lt_book_supp = CORRESPONDING #( delete-zjosh_i_bookg_supp MAPPING travel_id = TravelId
+                                                                        booking_id = BookingId
+                                                                        booking_supplement_id = BookingSupplementId
+                                                                         ).
+
+      DELETE zjosh_bookg_supp FROM TABLE @lt_book_supp.
+
+
+    ENDIF.
 
   ENDMETHOD.
 

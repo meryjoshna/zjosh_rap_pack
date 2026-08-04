@@ -85,7 +85,7 @@ early numbering
   validation validateConnection on save{ create; field CarrierId, ConnectionId, FlightDate;}
   validation validateFlightPrice on save{ create; field FlightPrice;}
 
-  determination calculateTotalPrice on modify{ create; field FlightPrice, CurrencyCode;}
+  determination calculateTotalPrice on modify{ create; delete; field FlightPrice, CurrencyCode;}
 
   association _travel;
 
@@ -110,7 +110,8 @@ early numbering
 
 define behavior for zjosh_i_bookg_supp //alias <alias_name>
 implementation in class zbp_josh_i_bokgsupp unique
-persistent table zjosh_bookg_supp
+//persistent table zjosh_bookg_supp
+with unmanaged save with full data
 lock dependent by _travel
 authorization dependent by _travel
 etag master  LastChangedAt
@@ -127,7 +128,7 @@ early numbering
   validation validateSupplement on save{ create; field SupplementId;}
   validation valiatePrice on save{ create; field price;}
 
-  determination calculateTotalPrice on modify{ create; field Price , CurrencyCode;}
+  determination calculateTotalPrice on modify{ create; delete; field Price , CurrencyCode;}
 
   association _travel;
   association _bookng;
