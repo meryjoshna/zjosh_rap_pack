@@ -1,3 +1,175 @@
+CLASS lsc_zjosh_i_travel DEFINITION INHERITING FROM cl_abap_behavior_saver.
+
+  PROTECTED SECTION.
+
+    METHODS save_modified REDEFINITION.
+
+ENDCLASS.
+
+CLASS lsc_zjosh_i_travel IMPLEMENTATION.
+
+  METHOD save_modified.
+
+    DATA : lt_travel_log TYPE STANDARD TABLE OF zjosh_logtab_tra.
+    DATA : lt_travel_log_create TYPE STANDARD TABLE OF zjosh_logtab_tra.
+    DATA: lt_travel_log_update TYPE STANDARD TABLE OF zjosh_logtab_tra.
+
+
+*    check if something got created in travel
+
+    IF create-zjosh_i_travel IS NOT INITIAL.
+
+      lt_travel_log = CORRESPONDING #(  create-zjosh_i_travel ).
+
+      LOOP AT lt_travel_log ASSIGNING FIELD-SYMBOL(<ls_travel_log>).
+
+        <ls_travel_log>-changing_operation = 'CREATE'.
+        GET TIME STAMP FIELD <ls_travel_log>-created_at.
+
+
+        "to know which field got changed read travel with current travel id and check %control structure
+
+        READ TABLE create-zjosh_i_travel ASSIGNING FIELD-SYMBOL(<ls_travel>)
+                   WITH TABLE KEY entity
+                   COMPONENTS TravelId = <ls_travel_log>-travelid.
+        IF sy-subrc = 0.
+
+          " If new value of the booking_fee field created
+          IF <ls_travel>-%control-BookingFee = cl_abap_behv=>flag_changed.
+
+            " Generate uuid as value of the change_id field
+            TRY.
+                <ls_travel_log>-change_id = cl_system_uuid=>create_uuid_x16_static( ).
+              CATCH cx_uuid_error.
+                "handle exception
+            ENDTRY.
+
+            <ls_travel_log>-changed_fieldname = 'Booking fee'.
+            <ls_travel_log>-changed_value = <ls_travel>-BookingFee.
+
+            APPEND <ls_travel_log> TO lt_travel_log_create.
+
+
+          ENDIF.
+
+
+          " If new value of the overall_status field created
+          IF <ls_travel>-%control-overallstatus = cl_abap_behv=>flag_changed.
+
+            TRY.
+                <ls_travel_log>-change_id = cl_system_uuid=>create_uuid_x16_static( ).
+              CATCH cx_uuid_error.
+                "handle exception
+            ENDTRY.
+
+            <ls_travel_log>-changed_fieldname = 'Overall status'.
+            <ls_travel_log>-changed_value = <ls_travel>-overallstatus.
+
+            APPEND <ls_travel_log> TO lt_travel_log_create.
+
+          ENDIF.
+
+
+        ENDIF.
+
+      ENDLOOP.
+
+      INSERT zjosh_logtab_tra FROM TABLE @lt_travel_log_create.
+
+    ENDIF.
+
+
+*    check if something got updated in travel
+    IF update-zjosh_i_travel IS NOT INITIAL.
+
+      lt_travel_log = CORRESPONDING #(  update-zjosh_i_travel ).
+
+      LOOP AT update-zjosh_i_travel ASSIGNING FIELD-SYMBOL(<ls_travel_update>).
+
+        ASSIGN lt_travel_log[ travelid = <ls_travel_update>-TravelId ] TO FIELD-SYMBOL(<ls_travel_log_up>).
+
+        IF <ls_travel_log_up> IS NOT ASSIGNED.
+
+          CONTINUE.
+
+        ENDIF.
+
+        <ls_travel_log_up>-changing_operation = 'UPDATE'.
+
+        GET TIME STAMP FIELD <ls_travel_log_up>-created_at.
+
+        IF <ls_travel_update>-%control-CustomerId = if_abap_behv=>mk-on.
+
+          TRY.
+              <ls_travel_log_up>-change_id = cl_system_uuid=>create_uuid_x16_static( ).
+            CATCH cx_uuid_error.
+              "handle exception
+          ENDTRY.
+
+          <ls_travel_log_up>-changed_fieldname = 'Customer id'.
+          <ls_travel_log_up>-changed_value = <ls_travel_update>-CustomerId.
+
+          APPEND <ls_travel_log_up> TO lt_travel_log_update.
+
+
+        ENDIF.
+
+        IF <ls_travel_update>-%control-Description = if_abap_behv=>mk-on.
+
+          TRY.
+              <ls_travel_log_up>-change_id = cl_system_uuid=>create_uuid_x16_static( ).
+            CATCH cx_uuid_error.
+              "handle exception
+          ENDTRY.
+
+          <ls_travel_log_up>-changed_fieldname = 'Description'.
+          <ls_travel_log_up>-changed_value = <ls_travel_update>-Description.
+
+          APPEND <ls_travel_log_up> TO lt_travel_log_update.
+
+
+        ENDIF.
+
+      ENDLOOP.
+
+      INSERT zjosh_logtab_tra FROM TABLE @lt_travel_log_update.
+
+
+    ENDIF.
+
+
+*    check if something got deleted in travel
+
+    IF delete-zjosh_i_travel IS NOT INITIAL.
+      lt_travel_log = CORRESPONDING #( delete-zjosh_i_travel ).
+
+      LOOP AT lt_travel_log ASSIGNING FIELD-SYMBOL(<ls_travel_log_del>).
+
+        <ls_travel_log_del>-changing_operation = 'DELETE'.
+
+        GET TIME STAMP FIELD <ls_travel_log_del>-created_at.
+
+        TRY.
+            <ls_travel_log_del>-change_id = cl_system_uuid=>create_uuid_x16_static(  ).
+          CATCH cx_uuid_error.
+            "handle exception
+        ENDTRY.
+
+        " changing delete travel instances in lt_travel_log itself
+
+      ENDLOOP.
+
+      INSERT zjosh_logtab_tra FROM TABLE @lt_travel_log.
+
+
+    ENDIF.
+
+
+
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lhc_zjosh_i_travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
   PRIVATE SECTION.

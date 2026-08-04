@@ -1,9 +1,10 @@
-managed ;
+managed implementation in class zbp_josh_i_trav unique ;
 strict ( 2 );
 
 define behavior for zjosh_i_travel //alias <alias_name>
 implementation in class zbp_josh_i_trav unique
 persistent table zjosh_travle_dbt
+with additional save
 lock master
 authorization master ( instance )
 etag master Lastchangedat
