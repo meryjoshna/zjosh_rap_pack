@@ -1,0 +1,5 @@
+@EndUserText.label: 'sdef travel unma'
+define service Zjosh_sdef_travel_un {
+  expose zjosh_c_travel_un;
+  expose zjosh_c_bookg_un;
+}
