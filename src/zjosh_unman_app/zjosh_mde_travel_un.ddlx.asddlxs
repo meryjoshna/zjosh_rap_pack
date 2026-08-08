@@ -24,6 +24,7 @@ annotate entity zjosh_c_travel_un
                              importance: #HIGH } ],
          identification: [ { position: 20 } ],
          selectionField: [ { position: 20 } ] }
+  //@Consumption.valueHelpDefinition: [{ entity : {name: '/DMO/I_Agency_StdVH', element: 'AgencyID'  }, useForValidation: true }]
   AgencyID;
 
   @UI: { lineItem:       [ { position: 30,
@@ -66,4 +67,3 @@ annotate entity zjosh_c_travel_un
   StatusText;
     
 }
-

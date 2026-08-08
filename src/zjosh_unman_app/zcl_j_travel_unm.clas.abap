@@ -1,0 +1,5 @@
+CLASS zcl_j_travel_unm DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zjosh_i_travel_un.
+ENDCLASS.
+
+CLASS zcl_j_travel_unm IMPLEMENTATION.
+ENDCLASS.

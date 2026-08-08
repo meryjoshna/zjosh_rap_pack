@@ -1,0 +1,60 @@
+unmanaged implementation in class zbp_josh_i_travel_un unique; // this class contains save sequence
+strict ( 2 );
+
+define behavior for zjosh_i_travel_un //alias <alias_name>
+implementation in class zcl_j_travel_unm unique
+late numbering
+lock master
+authorization master ( global )
+etag master LastChangedAt
+{
+  create;
+  update;
+  delete;
+  field ( readonly ) TravelID, LastChangedAt;
+  field ( mandatory ) AgencyID , CustomerID , BeginDate, EndDate;
+  association _Booking { create ( features : instance ); }
+  mapping for /dmo/travel control /dmo/s_travel_intx
+  {
+      AgencyID = agency_id;
+      BeginDate = begin_date;
+      BookingFee = booking_fee;
+      CurrencyCode = currency_code;
+      CustomerID = customer_id;
+      EndDate = end_date;
+      LastChangedAt = lastchangedat;
+      Memo = description;
+      Status = status;
+      TotalPrice = total_price;
+      TravelID = travel_id;
+
+
+  }
+}
+
+define behavior for zjosh_i_bookg_u //alias <alias_name>
+implementation in class zcl_j_bookg_un unique
+late numbering
+lock dependent by _Travel
+authorization dependent by _Travel
+etag dependent by _travel
+{
+  update;
+  delete;
+  field ( readonly ) TravelID, BookingID;
+  field ( mandatory ) BookingDate, CustomerID , AirlineID , ConnectionID, FlightDate;
+  association _Travel;
+  mapping for /dmo/booking control /dmo/s_booking_intx
+  {
+     AirlineID = carrier_id;
+     BookingDate = booking_date;
+     BookingID = booking_id;
+     ConnectionID = connection_id;
+     CurrencyCode = currency_code;
+     CustomerID = customer_id;
+     FlightDate = flight_date;
+     FlightPrice = flight_price;
+     TravelID = travel_id;
+
+  }
+}

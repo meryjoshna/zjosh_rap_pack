@@ -1,0 +1,5 @@
+CLASS zbp_josh_i_travel_un DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zjosh_i_travel_un.
+ENDCLASS.
+
+CLASS zbp_josh_i_travel_un IMPLEMENTATION.
+ENDCLASS.
