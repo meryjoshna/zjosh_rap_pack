@@ -32,7 +32,8 @@ CLASS lhc_zjosh_i_travel_un DEFINITION INHERITING FROM cl_abap_behavior_handler.
             tt_reported TYPE TABLE FOR REPORTED EARLY zjosh_i_travel_un.
     METHODS map_messages
       IMPORTING
-        cid          TYPE abp_behv_cid
+        cid          TYPE abp_behv_cid OPTIONAL
+        travelid     TYPE /dmo/travel_id OPTIONAL
         messages     TYPE /dmo/t_message
       EXPORTING
         failed_added TYPE abap_boolean
@@ -96,15 +97,114 @@ CLASS lhc_zjosh_i_travel_un IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD update.
+
+    DATA: ls_travel_in TYPE /dmo/travel,
+          ls_travelx   TYPE /dmo/s_travel_inx,
+          lt_messages  TYPE /dmo/t_message.
+
+    LOOP AT entities ASSIGNING FIELD-SYMBOL(<ls_travel_upd>).
+
+      ls_travel_in = CORRESPONDING #( <ls_travel_upd> MAPPING FROM ENTITY ).
+
+      ls_travelx-travel_id = <ls_travel_upd>-TravelID.
+      ls_travelx-_intx = CORRESPONDING #( <ls_travel_upd> MAPPING FROM ENTITY ).
+
+
+      CALL FUNCTION '/DMO/FLIGHT_TRAVEL_UPDATE'
+        EXPORTING
+          is_travel   = CORRESPONDING /dmo/s_travel_in( ls_travel_in )
+          is_travelx  = ls_travelx
+        IMPORTING
+          et_messages = lt_messages.
+
+      map_messages(
+          EXPORTING
+            cid       = <ls_travel_upd>-%cid_ref
+            travelid = <ls_travel_upd>-travelid
+            messages  = lt_messages
+          CHANGING
+            failed    = failed-zjosh_i_travel_un
+            reported  = reported-zjosh_i_travel_un
+        ).
+
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD delete.
   ENDMETHOD.
 
   METHOD read.
+
+
+    DATA: ls_travel_out TYPE /dmo/travel,
+          lt_messages   TYPE /dmo/t_message.
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<ls_travel_to_read>) GROUP BY <ls_travel_to_read>-%tky.
+
+      CALL FUNCTION '/DMO/FLIGHT_TRAVEL_READ'
+        EXPORTING
+          iv_travel_id = <ls_travel_to_read>-travelid
+        IMPORTING
+          es_travel    = ls_travel_out
+          et_messages  = lt_messages.
+
+      map_messages(
+          EXPORTING
+            travelid        = <ls_travel_to_read>-TravelID
+            messages         = lt_messages
+            IMPORTING
+            failed_added = DATA(failed_added)
+          CHANGING
+            failed           = failed-zjosh_i_travel_un
+            reported         = reported-zjosh_i_travel_un
+        ).
+
+      IF failed_added = abap_false.
+        INSERT CORRESPONDING #( ls_travel_out MAPPING TO ENTITY ) INTO TABLE result.
+      ENDIF.
+    ENDLOOP.
+
+
   ENDMETHOD.
 
   METHOD lock.
+
+
+    TRY.
+        "Instantiate lock object
+        DATA(lr_lock) = cl_abap_lock_object_factory=>get_instance( iv_name = '/DMO/ETRAVEL' ).
+      CATCH cx_abap_lock_failure INTO DATA(exception).
+        RAISE SHORTDUMP exception.
+    ENDTRY.
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<travel>).
+      TRY.
+          "enqueue travel instance
+          lr_lock->enqueue(
+              it_parameter  = VALUE #( (  name = 'TRAVEL_ID' value = REF #( <travel>-travelid ) ) )
+          ).
+          "if foreign lock exists
+        CATCH cx_abap_foreign_lock INTO DATA(foreign_lock).
+          map_messages(
+           EXPORTING
+                travelid = <travel>-TravelID
+                messages  =  VALUE #( (
+                                           msgid = '/DMO/CM_FLIGHT_LEGAC'
+                                           msgty = 'E'
+                                           msgno = '032'
+                                           msgv1 = <travel>-travelid
+                                           msgv2 = foreign_lock->user_name )
+                          )
+              CHANGING
+                failed    = failed-zjosh_i_travel_un
+                reported  = reported-zjosh_i_travel_un
+            ).
+
+        CATCH cx_abap_lock_failure INTO exception.
+          RAISE SHORTDUMP exception.
+      ENDTRY.
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD rba_Booking.
@@ -122,6 +222,7 @@ CLASS lhc_zjosh_i_travel_un IMPLEMENTATION.
       IF ls_message-msgty = 'E' OR ls_message-msgty = 'A'.
 
         APPEND VALUE #(  %cid = cid
+                         travelid = travelid
                         %fail-cause = zcl_j_travel_aux=>get_cause_from_message(
                                         msgid        = ls_message-msgid
                                         msgno        = ls_message-msgno
@@ -133,6 +234,7 @@ CLASS lhc_zjosh_i_travel_un IMPLEMENTATION.
       ENDIF.
 
       reported = VALUE #( ( %cid = cid
+                            travelid = travelid
                             %msg = new_message(
                                      id       = ls_message-msgid
                                      number   = ls_message-msgno

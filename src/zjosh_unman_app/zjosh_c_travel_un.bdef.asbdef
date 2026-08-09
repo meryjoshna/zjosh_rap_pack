@@ -2,18 +2,19 @@ projection;
 strict ( 2 );
 
 define behavior for zjosh_c_travel_un //alias <alias_name>
+use etag
 {
   use create;
-//  use update;
+  use update;
 //  use delete;
 //
-  use association _Booking { create; }
+//  use association _Booking { create; }
 }
 
-define behavior for zjosh_c_bookg_un //alias <alias_name>
-{
-//  use update;
-//  use delete;
-//
-  use association _Travel;
-}
+//define behavior for zjosh_c_bookg_un //alias <alias_name>
+//{
+////  use update;
+////  use delete;
+////
+//  use association _Travel;
+//}
