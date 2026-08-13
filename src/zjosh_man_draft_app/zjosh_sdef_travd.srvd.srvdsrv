@@ -1,0 +1,6 @@
+@EndUserText.label: 'sdef travel draft'
+define service Zjosh_sdef_travD {
+  expose zjosh_c_travel_D;
+  expose zjosh_c_bookg_D;
+  expose zjosh_c_bsupp_d;
+}

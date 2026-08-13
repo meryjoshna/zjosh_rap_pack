@@ -1,0 +1,99 @@
+managed ;
+strict ( 2 );
+
+define behavior for zjosh_i_travel_D //alias <alias_name>
+implementation in class zbp_josh_i_travel_d unique
+persistent table zjosh_a_travel_t
+lock master
+authorization master ( instance, global )
+//etag master <field_name>
+{
+  create ( precheck );
+  update ( precheck );
+  delete;
+  field ( numbering :managed, readonly  ) TravelUUID;
+  association _Booking { create; }
+
+  mapping for zjosh_a_travel_t{
+
+   AgencyID = agency_id;
+   BeginDate = begin_date;
+   BookingFee = booking_fee;
+   CurrencyCode = currency_code;
+   CustomerID = customer_id;
+   Description = description;
+   EndDate = end_date;
+   LastChangedAt = last_changed_at;
+   LocalCreatedAt = local_created_at;
+   LocalCreatedBy = local_created_by;
+   LocalLastChangedAt = local_last_changed_at;
+   LocalLastChangedBy = local_last_changed_by;
+   OverallStatus = overall_status;
+   TotalPrice = total_price;
+   TravelID = travel_id;
+   TravelUUID = travel_uuid;
+
+  }
+
+
+}
+
+define behavior for zjosh_i_bookg_D //alias <alias_name>
+//implementation in class zbp_josh_i_bookg_d unique
+persistent table zjosh_a_bookg_t
+lock dependent by _Travel
+authorization dependent by _Travel
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( numbering:managed, readonly ) BookingUUID;
+  field ( readonly ) TravelUUID;
+  association _Travel;
+  association _BookingSupplement { create; }
+
+  mapping for zjosh_a_bookg_t
+  {
+    AirlineID = carrier_id;
+    BookingDate = booking_date;
+    BookingID = booking_id;
+    BookingStatus = booking_status;
+    BookingUUID = booking_uuid;
+    ConnectionID = connection_id;
+    CurrencyCode = currency_code;
+    CustomerID = customer_id;
+    FlightDate = flight_date;
+    FlightPrice = flight_price;
+    LocalLastChangedAt = local_last_changed_at;
+    TravelUUID = parent_uuid;
+
+  }
+}
+
+define behavior for zjosh_i_bsupp_d //alias <alias_name>
+//implementation in class zbp_josh_i_bsupp_d unique;
+persistent table zjosh_a_bsupp_t
+lock dependent by _Travel
+authorization dependent by _Travel
+//etag master <field_name>
+{
+  update;
+  delete;
+  field (numbering : managed, readonly ) BookSupplUUID;
+  field ( readonly ) TravelUUID, BookingUUID;
+  association _Travel;
+  association _Booking;
+
+  mapping for zjosh_a_bsupp_t
+  {
+    BookSupplPrice = price;
+    BookSupplUUID = booksuppl_uuid;
+    BookingSupplementID = booking_supplement_id;
+    BookingUUID = parent_uuid;
+    CurrencyCode = currency_code;
+    LocalLastChangedAt = local_last_changed_at;
+    SupplementID = supplement_id;
+    TravelUUID = root_uuid;
+
+   }
+}
