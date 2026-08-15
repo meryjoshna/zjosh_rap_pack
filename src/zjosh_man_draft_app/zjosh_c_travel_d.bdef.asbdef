@@ -7,6 +7,9 @@ define behavior for zjosh_c_travel_D //alias <alias_name>
   use update;
   use delete;
 
+  use action deductDiscount;
+  use action acceptTravel;
+  use action rejectTravel;
   use association _Booking { create; }
 }
 

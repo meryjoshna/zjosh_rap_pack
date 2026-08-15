@@ -14,6 +14,11 @@ authorization master ( instance, global )
   field ( numbering :managed, readonly  ) TravelUUID;
   association _Booking { create; }
 
+  action( authorization :update ) acceptTravel result [1] $self;
+  action( authorization :update ) rejectTravel result [1] $self;
+  action( authorization :update ) deductDiscount parameter zjosh_absten_dedacti result [1] $self;
+  internal action recalcTotalPrice;
+
   mapping for zjosh_a_travel_t{
 
    AgencyID = agency_id;
