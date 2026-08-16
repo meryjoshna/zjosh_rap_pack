@@ -22,6 +22,14 @@ CLASS lhc_zjosh_i_travel_D DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS rejectTravel FOR MODIFY
        keys FOR ACTION zjosh_i_travel_D~rejectTravel RESULT result.
+    METHODS calcTotPrice FOR DETERMINE ON MODIFY
+       keys FOR zjosh_i_travel_D~calcTotPrice.
+
+    METHODS setStatusOpen FOR DETERMINE ON MODIFY
+       keys FOR zjosh_i_travel_D~setStatusOpen.
+
+    METHODS setTravelId FOR DETERMINE ON SAVE
+       keys FOR zjosh_i_travel_D~setTravelId.
 
 ENDCLASS.
 
@@ -356,15 +364,15 @@ CLASS lhc_zjosh_i_travel_D IMPLEMENTATION.
         IF amount_per_currencycode-currency_code = <travel>-CurrencyCode.
           <travel>-TotalPrice += amount_per_currencycode-amount.
         ELSE.
-            /DMO/CL_FLIGHT_AMDP=>convert_currency(
-             EXPORTING
-               iv_amount                   =  amount_per_currencycode-amount
-               iv_currency_code_source     =  amount_per_currencycode-currency_code
-               iv_currency_code_target     =  <travel>-CurrencyCode
-               iv_exchange_rate_date       =  cl_abap_context_info=>get_system_date( )
-             IMPORTING
-               ev_amount                   = DATA(total_booking_price_per_curr)
-            ).
+          /dmo/cl_flight_amdp=>convert_currency(
+           EXPORTING
+             iv_amount                   =  amount_per_currencycode-amount
+             iv_currency_code_source     =  amount_per_currencycode-currency_code
+             iv_currency_code_target     =  <travel>-CurrencyCode
+             iv_exchange_rate_date       =  cl_abap_context_info=>get_system_date( )
+           IMPORTING
+             ev_amount                   = DATA(total_booking_price_per_curr)
+          ).
           <travel>-TotalPrice += total_booking_price_per_curr.
         ENDIF.
       ENDLOOP.
@@ -399,6 +407,65 @@ CLASS lhc_zjosh_i_travel_D IMPLEMENTATION.
 
     result = VALUE #( FOR travel IN travels ( %tky   = travel-%tky
                                               %param = travel ) ).
+
+  ENDMETHOD.
+
+  METHOD calcTotPrice.
+
+    modify entities of zjosh_i_travel_D in LOCAL mode
+    entity zjosh_i_travel_d
+    execute recalcTotalPrice
+    from CORRESPONDING #( keys ).
+
+
+  ENDMETHOD.
+
+  METHOD setStatusOpen.
+
+    READ ENTITIES OF zjosh_i_travel_d IN LOCAL MODE
+     ENTITY  zjosh_i_Travel_d
+     FIELDS ( OverallStatus )
+     WITH CORRESPONDING #( keys )
+     RESULT DATA(lt_travels).
+
+    DELETE lt_travels WHERE OverallStatus IS NOT INITIAL.
+
+    CHECK lt_travels IS NOT INITIAL.
+
+
+    MODIFY ENTITIES OF zjosh_i_travel_D IN LOCAL MODE
+    ENTITY zjosh_i_travel_D
+    UPDATE FIELDS ( OverallStatus )
+    WITH VALUE #( FOR ls_travel IN lt_travels (
+                           %tky = ls_travel-%tky
+                           OverallStatus = 'O' ) ).
+
+  ENDMETHOD.
+
+  METHOD setTravelId.
+
+    READ ENTITIES OF zjosh_i_travel_d IN LOCAL MODE
+    ENTITY  zjosh_i_Travel_d
+    FIELDS ( TravelID )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_travels).
+
+    DELETE lt_travels WHERE TravelID IS NOT INITIAL.
+
+    CHECK lt_travels IS NOT INITIAL.
+
+    SELECT FROM zjosh_a_travel_t
+    FIELDS MAX( travel_id )
+    INTO @DATA(lv_max_travelid).
+
+    MODIFY ENTITIES OF zjosh_i_travel_D IN LOCAL MODE
+    ENTITY zjosh_i_travel_D
+    UPDATE FIELDS ( TravelID )
+    WITH VALUE #( FOR ls_travel IN lt_travels INDEX INTO lv_index (
+                           %tky = ls_travel-%tky
+                           TravelID =  lv_max_travelid + lv_index ) ).
+
+
 
   ENDMETHOD.
 
