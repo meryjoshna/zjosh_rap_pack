@@ -30,6 +30,8 @@ CLASS lhc_zjosh_i_travel_D DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS setTravelId FOR DETERMINE ON SAVE
        keys FOR zjosh_i_travel_D~setTravelId.
+    METHODS validateCustomer FOR VALIDATE ON SAVE
+      keys FOR zjosh_i_travel_D~validateCustomer.
 
 ENDCLASS.
 
@@ -467,6 +469,66 @@ CLASS lhc_zjosh_i_travel_D IMPLEMENTATION.
 
 
 
+  ENDMETHOD.
+
+  METHOD validateCustomer.
+
+    READ ENTITIES OF zjosh_i_travel_d IN LOCAL MODE
+         ENTITY zjosh_i_travel_d
+         FIELDS ( CustomerID )
+         WITH CORRESPONDING #( keys )
+         RESULT DATA(travels).
+
+    DATA customers TYPE SORTED TABLE OF /dmo/customer WITH UNIQUE KEY customer_id.
+
+    " Optimization of DB select: extract distinct non-initial customer IDs
+    customers = CORRESPONDING #( travels DISCARDING DUPLICATES MAPPING customer_id = CustomerID EXCEPT * ).
+
+    DELETE customers WHERE customer_id IS INITIAL.
+
+    IF customers IS NOT INITIAL.
+      " Check if customer ID exists
+      SELECT FROM /dmo/customer
+        FIELDS customer_id
+        FOR ALL ENTRIES IN @customers
+        WHERE customer_id = @customers-customer_id
+        INTO TABLE @DATA(valid_customers).
+    ENDIF.
+
+    " Raise message for non existing customer id
+    LOOP AT travels INTO DATA(travel).
+
+     "invalidating state messages, remove messages from backend every time this valiation is called
+      APPEND VALUE #( %tky        = travel-%tky
+                      %state_area = 'VALIDATE_CUSTOMER' )
+             TO reported-zjosh_i_travel_d.
+
+      IF travel-CustomerID IS INITIAL.
+        APPEND VALUE #( %tky = travel-%tky ) TO failed-zjosh_i_travel_d.
+
+        APPEND VALUE #( %tky                = travel-%tky
+                        %state_area         = 'VALIDATE_CUSTOMER'
+                        %msg                = NEW /dmo/cm_flight_messages(
+                                                      textid   = /dmo/cm_flight_messages=>enter_customer_id
+                                                      severity = if_abap_behv_message=>severity-error )
+                        %element-CustomerID = if_abap_behv=>mk-on )
+               TO reported-zjosh_i_travel_d.
+
+      ELSEIF travel-CustomerID IS NOT INITIAL AND NOT line_exists( valid_customers[ customer_id = travel-CustomerID ] ).
+
+        APPEND VALUE #( %tky = travel-%tky ) TO failed-zjosh_i_travel_d.
+
+        APPEND VALUE #( %tky                = travel-%tky
+                        %state_area         = 'VALIDATE_CUSTOMER'
+                        %msg                = NEW /dmo/cm_flight_messages(
+                                                      customer_id = travel-customerid
+                                                      textid      = /dmo/cm_flight_messages=>customer_unkown
+                                                      severity    = if_abap_behv_message=>severity-error )
+                        %element-CustomerID = if_abap_behv=>mk-on )
+               TO reported-zjosh_i_travel_d.
+      ENDIF.
+
+    ENDLOOP.
   ENDMETHOD.
 
 ENDCLASS.

@@ -26,6 +26,11 @@ authorization master ( instance, global )
   determination calcTotPrice on modify { create; field BookingFee, CurrencyCode; }
 
   side effects { field BookingFee affects field TotalPrice; }
+
+
+  field ( mandatory ) CustomerID;
+
+  validation validateCustomer on save { create; field CustomerID; }
   mapping for zjosh_a_travel_t
     {
       AgencyID           = agency_id;
@@ -68,6 +73,10 @@ authorization dependent by _Travel
   determination calTotprice on modify { create; field FlightPrice, CurrencyCode; }
 
   side effects {field FlightPrice affects field _travel.TotalPrice;}
+
+  field( mandatory) CustomerID;
+  validation validateCustomer on save { create; field CustomerID;}
+
   mapping for zjosh_a_bookg_t
     {
       AirlineID          = carrier_id;
@@ -103,6 +112,11 @@ authorization dependent by _Travel
   determination calTotPrice on modify { create; field BookSupplPrice, CurrencyCode; }
 
   side effects { field BookSupplPrice affects field _travel.TotalPrice ;}
+
+  field ( mandatory ) SupplementID;
+
+  validation validateSupplement on save { create; field SupplementID;}
+
   mapping for zjosh_a_bsupp_t
     {
       BookSupplPrice      = price;

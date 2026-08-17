@@ -22,7 +22,7 @@ key TravelUUID,
 
       @Search.defaultSearchElement: true
       @ObjectModel.text.element: ['CustomerName']
-      @Consumption.valueHelpDefinition: [{ entity : {name: '/DMO/I_Customer', element: 'CustomerID'  } }]
+      @Consumption.valueHelpDefinition: [{ entity : {name: '/DMO/I_Customer', element: 'CustomerID'  } }] //useForValidation: true
       CustomerID,
       _Customer.LastName as CustomerName,
 
