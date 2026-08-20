@@ -2,6 +2,7 @@ projection;
 strict ( 2 );
 
 use side effects;
+use draft;
 define behavior for zjosh_c_travel_D //alias <alias_name>
 {
   use create;
@@ -11,7 +12,14 @@ define behavior for zjosh_c_travel_D //alias <alias_name>
   use action deductDiscount;
   use action acceptTravel;
   use action rejectTravel;
-  use association _Booking { create; }
+  use association _Booking { create; with draft; }
+
+  use action Edit;
+  use action Activate;
+  use action Discard;
+  use action Resume;
+  use action Prepare;
+
 }
 
 define behavior for zjosh_c_bookg_D //alias <alias_name>
@@ -19,8 +27,8 @@ define behavior for zjosh_c_bookg_D //alias <alias_name>
   use update;
   use delete;
 
-  use association _Travel;
-  use association _BookingSupplement { create; }
+  use association _Travel {with draft;}
+  use association _BookingSupplement { create; with draft; }
 }
 
 define behavior for zjosh_c_bsupp_d //alias <alias_name>
@@ -28,6 +36,6 @@ define behavior for zjosh_c_bsupp_d //alias <alias_name>
   use update;
   use delete;
 
-  use association _Travel;
-  use association _Booking;
+  use association _Travel { with draft; }
+  use association _Booking { with draft; }
 }

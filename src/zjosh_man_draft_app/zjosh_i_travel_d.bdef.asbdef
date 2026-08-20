@@ -1,20 +1,25 @@
 managed;
 strict ( 2 );
 
+with draft;
+
 define behavior for zjosh_i_travel_D //alias <alias_name>
 implementation in class zbp_josh_i_travel_d unique
 persistent table zjosh_a_travel_t
+draft table zjosh_d_travel_d
 lock master
+total etag LastChangedAt
 authorization master ( instance, global )
-//etag master <field_name>
+etag master LocalLastChangedAt
 {
   create ( precheck );
   update ( precheck );
   delete;
   field ( numbering : managed, readonly ) TravelUUID;
 
-  field ( readonly ) TravelID, OverallStatus;
-  association _Booking { create; }
+  field ( readonly ) TravelID, OverallStatus, TotalPrice,
+       LastChangedAt, LocalCreatedAt, LocalCreatedBy, LocalLastChangedAt, LocalLastChangedBy;
+  association _Booking { create( authorization : update ); with draft; }
 
   action ( authorization : update ) acceptTravel result [1] $self;
   action ( authorization : update ) rejectTravel result [1] $self;
@@ -31,6 +36,19 @@ authorization master ( instance, global )
   field ( mandatory ) CustomerID;
 
   validation validateCustomer on save { create; field CustomerID; }
+
+  draft action Resume with additional implementation;
+  draft action Edit with additional implementation;
+  draft action Activate optimized with additional implementation;
+  draft action Discard with additional implementation;
+  draft determine action Prepare{
+    validation validateCustomer;
+    validation zjosh_i_bookg_D~validateCustomer;
+    validation zjosh_i_bsupp_d~validateSupplement;
+  }
+
+
+
   mapping for zjosh_a_travel_t
     {
       AgencyID           = agency_id;
@@ -57,25 +75,26 @@ authorization master ( instance, global )
 define behavior for zjosh_i_bookg_D //alias <alias_name>
 implementation in class zbp_josh_i_bookg_d unique
 persistent table zjosh_a_bookg_t
+draft table zjosh_d_bookg_d
 lock dependent by _Travel
 authorization dependent by _Travel
-//etag master <field_name>
+etag master LocalLastChangedAt
 {
   update;
   delete;
   field ( numbering : managed, readonly ) BookingUUID;
-  field ( readonly ) TravelUUID, BookingID, BookingDate;
-  association _Travel;
-  association _BookingSupplement { create; }
+  field ( readonly ) TravelUUID, BookingID, BookingDate, LocalLastChangedAt;
+  association _Travel {with draft;}
+  association _BookingSupplement { create( authorization : update ); with draft; }
 
   determination setBookingNumber on save { create; }
   determination setBookingdate on save { create; }
   determination calTotprice on modify { create; field FlightPrice, CurrencyCode; }
 
-  side effects {field FlightPrice affects field _travel.TotalPrice;}
+  side effects { field FlightPrice affects field _travel.TotalPrice; }
 
-  field( mandatory) CustomerID;
-  validation validateCustomer on save { create; field CustomerID;}
+  field ( mandatory ) CustomerID;
+  validation validateCustomer on save { create; field CustomerID; }
 
   mapping for zjosh_a_bookg_t
     {
@@ -94,28 +113,30 @@ authorization dependent by _Travel
     }
 }
 
+
 define behavior for zjosh_i_bsupp_d //alias <alias_name>
 implementation in class zbp_josh_i_bsupp_d unique
 persistent table zjosh_a_bsupp_t
+draft table zjosh_d_bsupp_d
 lock dependent by _Travel
 authorization dependent by _Travel
-//etag master <field_name>
+etag master LocalLastChangedAt
 {
   update;
   delete;
   field ( numbering : managed, readonly ) BookSupplUUID;
-  field ( readonly ) TravelUUID, BookingUUID, BookingSupplementID;
-  association _Travel;
-  association _Booking;
+  field ( readonly ) TravelUUID, BookingUUID, BookingSupplementID,LocalLastChangedAt;
+  association _Travel { with draft; }
+  association _Booking { with draft; }
 
   determination setBooksuppNum on save { create; }
   determination calTotPrice on modify { create; field BookSupplPrice, CurrencyCode; }
 
-  side effects { field BookSupplPrice affects field _travel.TotalPrice ;}
+  side effects { field BookSupplPrice affects field _travel.TotalPrice; }
 
   field ( mandatory ) SupplementID;
 
-  validation validateSupplement on save { create; field SupplementID;}
+  validation validateSupplement on save { create; field SupplementID; }
 
   mapping for zjosh_a_bsupp_t
     {

@@ -32,6 +32,17 @@ CLASS lhc_zjosh_i_travel_D DEFINITION INHERITING FROM cl_abap_behavior_handler.
        keys FOR zjosh_i_travel_D~setTravelId.
     METHODS validateCustomer FOR VALIDATE ON SAVE
       keys FOR zjosh_i_travel_D~validateCustomer.
+    METHODS Activate FOR MODIFY
+      keys FOR ACTION zjosh_i_travel_D~Activate.
+
+    METHODS Discard FOR MODIFY
+      keys FOR ACTION zjosh_i_travel_D~Discard.
+
+    METHODS Edit FOR MODIFY
+      keys FOR ACTION zjosh_i_travel_D~Edit.
+
+    METHODS Resume FOR MODIFY
+      keys FOR ACTION zjosh_i_travel_D~Resume.
 
 ENDCLASS.
 
@@ -529,6 +540,18 @@ CLASS lhc_zjosh_i_travel_D IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD Activate.
+  ENDMETHOD.
+
+  METHOD Discard.
+  ENDMETHOD.
+
+  METHOD Edit.
+  ENDMETHOD.
+
+  METHOD Resume.
   ENDMETHOD.
 
 ENDCLASS.
